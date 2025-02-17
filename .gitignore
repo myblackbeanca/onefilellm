@@ -5,6 +5,8 @@ processed_urls.txt
 # Env
 .env
 
+.venv
+
 # Editors
 .project
 .settings

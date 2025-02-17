@@ -19,36 +19,214 @@ template = """
 <head>
     <title>1FileLLM Web Interface</title>
     <style>
-    body { font-family: sans-serif; margin: 2em; }
-    input[type="text"] { width: 80%; padding: 0.5em; }
-    .output-container { margin-top: 2em; }
-    .file-links { margin-top: 1em; }
-    pre { background: #f8f8f8; padding: 1em; border: 1px solid #ccc; }
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2em;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1em;
+        }
+
+        .input-section {
+            margin-bottom: 2em;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75em;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1em;
+            margin-bottom: 1em;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75em 2em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .examples {
+            background-color: #f8fafc;
+            padding: 1.5em;
+            border-radius: 4px;
+            margin: 1.5em 0;
+        }
+
+        .examples h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .example-item {
+            margin-bottom: 0.5em;
+        }
+
+        .output-container {
+            margin-top: 2em;
+            padding: 1.5em;
+            background-color: #f8fafc;
+            border-radius: 4px;
+        }
+
+        .token-counts {
+            background-color: white;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .download-links {
+            display: flex;
+            gap: 1em;
+            margin-top: 1em;
+        }
+
+        .download-links a {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .download-links a:hover {
+            background-color: var(--secondary-color);
+        }
+
+        pre {
+            background-color: white;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .output-text-container {
+            position: relative;
+            margin-top: 1em;
+        }
     </style>
+    <script>
+        function copyToClipboard() {
+            const outputText = document.getElementById('output-text').innerText;
+            navigator.clipboard.writeText(outputText).then(() => {
+                const button = document.getElementById('copy-button');
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy to Clipboard';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
 </head>
 <body>
-    <h1>1FileLLM Web Interface</h1>
-    <form method="POST" action="/">
-        <p>Enter a URL, path, DOI, or PMID:</p>
-        <input type="text" name="input_path" required placeholder="e.g. https://github.com/jimmc414/1filellm or /path/to/local/folder"/>
-        <button type="submit">Process</button>
-    </form>
-
-    {% if output %}
-    <div class="output-container">
-        <h2>Processed Output</h2>
-        <pre>{{ output }}</pre>
+    <div class="container">
+        <h1>1FileLLM Web Interface</h1>
         
-        <h3>Token Counts</h3>
-        <p>Uncompressed Tokens: {{ uncompressed_token_count }}<br>
-        Compressed Tokens: {{ compressed_token_count }}</p>
-
-        <div class="file-links">
-            <a href="/download?filename=uncompressed_output.txt">Download Uncompressed Output</a> |
-            <a href="/download?filename=compressed_output.txt">Download Compressed Output</a>
+        <div class="input-section">
+            <form method="POST" action="/">
+                <input type="text" name="input_path" required 
+                    placeholder="Enter URL, path, DOI, or PMID"/>
+                <button type="submit">Process</button>
+            </form>
         </div>
+
+        <div class="examples">
+            <h3>Supported Input Types:</h3>
+            <div class="example-item">• GitHub repository: <code>https://github.com/username/repo</code></div>
+            <div class="example-item">• GitHub pull request: <code>https://github.com/user/repo/pull/102</code></div>
+            <div class="example-item">• GitHub issue: <code>https://github.com/user/repo/issues/1191</code></div>
+            <div class="example-item">• ArXiv paper: <code>https://arxiv.org/abs/2401.14295</code></div>
+            <div class="example-item">• YouTube video: <code>https://www.youtube.com/watch?v=KZ_NlnmPQYk</code></div>
+            <div class="example-item">• Webpage: <code>https://llm.datasette.io/en/stable/</code></div>
+            <div class="example-item">• Sci-Hub DOI: <code>10.1053/j.ajkd.2017.08.002</code></div>
+            <div class="example-item">• Sci-Hub PMID: <code>29203127</code></div>
+        </div>
+
+        {% if output %}
+        <div class="output-container">
+            <h2>Processed Output</h2>
+            
+            <div class="token-counts">
+                <h3>Token Counts</h3>
+                <p>
+                    Uncompressed Tokens: <strong>{{ uncompressed_token_count }}</strong><br>
+                    Compressed Tokens: <strong>{{ compressed_token_count }}</strong>
+                </p>
+            </div>
+
+             <div class="download-links">
+                <a href="/download?filename=uncompressed_output.txt">Download Uncompressed Output</a>
+                <a href="/download?filename=compressed_output.txt">Download Compressed Output</a>
+            </div>
+
+            <div class="output-text-container">
+                <button id="copy-button" class="copy-button" onclick="copyToClipboard()">
+                    Copy to Clipboard
+                </button>
+                <pre id="output-text">{{ output }}</pre>
+            </div>
+            
+           
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 </body>
 </html>
 """
@@ -124,5 +302,6 @@ def download():
     return "File not found", 404
 
 if __name__ == "__main__":
-    # Run the app in debug mode for local development
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    # Use environment variable for port with fallback to 8080
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
