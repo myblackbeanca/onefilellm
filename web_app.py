@@ -302,6 +302,12 @@ def download():
     return "File not found", 404
 
 if __name__ == "__main__":
-    # Use environment variable for port with fallback to 8080
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    try:
+        # Try running in development mode
+        app.run(
+            host="127.0.0.1",
+            port=5000,
+            debug=True  # Enable debug mode for development
+        )
+    except Exception as e:
+        print(f"Error starting server: {str(e)}")
